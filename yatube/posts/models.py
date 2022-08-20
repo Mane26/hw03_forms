@@ -39,7 +39,9 @@ class Post(models.Model):
         related_name='posts'
     )
 
+    class Meta:
+        verbose_name = 'Пост'
+        ordering = ['-pub_date']
 
-class Meta:
-    ordering = ('-pub_date')
-    default_related_name = 'posts'
+    def __str__(self):
+        return self.text[:15]
