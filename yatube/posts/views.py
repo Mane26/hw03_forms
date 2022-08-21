@@ -9,10 +9,10 @@ POSTS_NUMB = 10
 
 
 def group_posts(request, slug):
-    # Страница со списком постов - group_posts,
-    # отвечающая за запросы, содержимое постов из групп
+    # Функция group_posts передает данные в шаблон group_list.html
     group = get_object_or_404(Group, slug=slug)
-    post_list = group.posts.all()
+    post_list = (group.posts.select_related("author").
+                 order_by('-pub_date'))
     paginator = Paginator(post_list, POSTS_NUMB)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -24,10 +24,14 @@ def group_posts(request, slug):
 
 
 def index(request):
-    post_list = Post.objects.all().order_by('-pub_date')
+    # Функция index передает данные в шаблон index.html
+    # Паджинация 10 постов на страницу
+    post_list = (Post.objects.select_related("author").
+                 order_by('-pub_date'))
     paginator = Paginator(post_list, POSTS_NUMB)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    # Здесь код запроса к модели и создание словаря контекста
     context = {
         'page_obj': page_obj,
     }
@@ -35,9 +39,14 @@ def index(request):
 
 
 def profile(request, username):
+    # Здесь код запроса к модели и создание словаря контекста
     author = get_object_or_404(User, username=username)
-    post_list = author.posts.all()
+    # В тело страницы выведен список постов
+    post_list = (author.posts.select_related("author").
+                 order_by('-pub_date'))
+    # Выведено общее количество постов пользователя
     count = author.posts.count()
+    # Паджинация 10 постов на страницу
     paginator = Paginator(post_list, POSTS_NUMB)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -51,14 +60,16 @@ def profile(request, username):
 
 
 def post_detail(request, post_id):
-    '''Страница для просмотра одного поста'''
+    # Здесь код запроса к модели и создание словаря контекста
     post = get_object_or_404(Post, pk=post_id)
+    # В тело страницы выведен один пост, выбранный по pk
     context = {'post': post, }
     return render(request, 'posts/post_detail.html', context)
 
 
 @login_required
 def post_create(request):
+    # Добавлена "Новая запись" для авторизованных пользователей
     if request.method == "POST":
         form = PostForm(request.POST or None)
         if form.is_valid():
@@ -73,6 +84,10 @@ def post_create(request):
 
 @login_required
 def post_edit(request, post_id):
+    # Добавлена страница редактирования записи
+    # Права на редактирование должны быть только у автора этого поста
+    # Остальные пользователи должны перенаправляться
+    # На страницу просмотра поста
     post = Post.objects.get(pk=post_id)
     form = PostForm(None, instance=post)
     if request.user != post.author:

@@ -5,7 +5,7 @@ User = get_user_model()
 
 
 class Group(models.Model):
-    # Создание модели для таблицы Сообщества
+    """ Создание модели для таблицы Сообщества."""
     title = models.CharField(max_length=200, verbose_name='Group title')
     slug = models.SlugField(unique=True, verbose_name='Relative URL')
     description = models.TextField(
@@ -18,7 +18,7 @@ class Group(models.Model):
 
 
 class Post(models.Model):
-    # Создание модели для таблицы Постов
+    """ Создание модели для таблицы Постов."""
     text = models.TextField(
         max_length=300, verbose_name="текст поста")
     pub_date = models.DateTimeField(
